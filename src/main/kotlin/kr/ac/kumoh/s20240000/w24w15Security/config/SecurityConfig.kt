@@ -1,16 +1,19 @@
 package kr.ac.kumoh.s20240000.w24w15Security.config
 
+import kr.ac.kumoh.s20240000.w24w15Security.filter.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
-class SecurityConfig {
-
+class SecurityConfig(
+    private val jwtAuthenticationFilter: JwtAuthenticationFilter
+) {
     // CORS 설정을 위한 CorsConfigurationSource 정의
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
@@ -34,9 +37,11 @@ class SecurityConfig {
             .authorizeHttpRequests { authz ->
                 authz
                     .requestMatchers("/api/auth/**").permitAll() // 로그인, 회원가입 경로는 허용
+//                    .requestMatchers("/api/songs/**").authenticated()
                     .anyRequest().authenticated()
             }
             .csrf { csrf -> csrf.disable() }
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
     }
 }
